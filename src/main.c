@@ -5,6 +5,10 @@
 int I2C_SDA = 18;
 int I2C_SCL = 19;
 
+uint8_t clear_val = 0;
+uint8_t high_score;
+uint8_t round_score = 13;
+
 
 void init_i2c() {
     i2c_init(i2c1, 400 * 1000);
@@ -31,9 +35,12 @@ int main() {
     stdio_init_all();
 
     init_i2c();
-  //  eeprom_write(0x20, "Testing EEPROM!", 18);
-    char data[32];
-    eeprom_read(0x20, data, 32);
-    data[18] = '\0';   
-    printf("Data read from EEPROM: %s\n", data);
+  //  eeprom_write(0x20, &clear_val, 1);
+
+    eeprom_read(0x20, &high_score, 1);
+    if (round_score > high_score) {
+        eeprom_write(0x20, &round_score, 1);
+        eeprom_read(0x20, &high_score, 1);
+    }
+    printf("High Score: %u\n", high_score);
 }
