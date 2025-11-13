@@ -5,14 +5,15 @@
 #include "hardware/spi.h"
 #include "string.h"
 #include "stdio.h"
+#include "math.h"
 
 //adc stuff for joystick
-#define CENTER_TOLERANCE 500  // range around midpoint considered neutral
+#define CENTER_TOLERANCE 1000  // range around midpoint considered neutral
 #define ADC_MIDPOINT 2048 // ~1.65V for 12-bit ADC (0–4095)
 #define ADC_MAX 4095 //max value for 12 bit adc
 
-#define JOY_X 0  // gp26 connect to vrX
-#define JOY_Y 1  // gp27 connect to vrY
+#define JOY_X 7  // gp26 connect to vrX
+#define JOY_Y 6  // gp27 connect to vrY
 
 typedef enum {
     DIR_CENTER,
@@ -36,8 +37,8 @@ uint8_t round_score = 8;
 
 void adc_init_joystick() {
     adc_init();
-    adc_gpio_init(26);  // ADC0 (X-axis)
-    adc_gpio_init(27);  // ADC1 (Y-axis)
+    adc_gpio_init(46);  // ADC0 (X-axis)
+    adc_gpio_init(47);  // ADC1 (Y-axis)
 }
 
 // Read raw X and Y values
@@ -172,15 +173,15 @@ int main() {
     int difficulty = 5;
     int milis = 2000;
 
-    srand((unsigned)time_us_64());
-    int r;
-    for (int i = 0; i < difficulty; ++i) {
-        r = rand() % 3;
-        gpio_put(29 + r, true);
-        sleep_ms(milis);
-        gpio_put(29 + r, false);
-        sleep_ms(400);
-    }
+    // srand((unsigned)time_us_64());
+    // int r;
+    // for (int i = 0; i < difficulty; ++i) {
+    //     r = rand() % 3;
+    //     gpio_put(29 + r, true);
+    //     sleep_ms(milis);
+    //     gpio_put(29 + r, false);
+    //     sleep_ms(400);
+    // }
 
     while (true) {
         direction_t dir = get_joystick_direction();
