@@ -11,6 +11,7 @@
 #include "hardware/structs/iobank0.h"
 #include "hardware/structs/pads_bank0.h"
 #include "hardware/structs/sio.h"
+#include "queue.h"
 
 
 //adc stuff for joystick
@@ -177,42 +178,59 @@ int main() {
     //eeprom_write(0x20, &clear_val, 1);
 
     init_outputs();
+    Queue q;
+    init_queue(&q);
     
-    int difficulty = 5;
-    int milis = 2000;
-
-    srand((unsigned)time_us_64());
-    int r;
-    for (int i = 0; i < difficulty; ++i) {
-        r = rand() % 4;
-        gpio_put(21 + r, true);
-        sleep_ms(milis);
-        gpio_put(21 + r, false);
-        sleep_ms(400);
-    }
-
+    int difficulty = 1;
+    int milis = 1000;
+    bool fail = false;
     while (true) {
-        direction_t dir = get_joystick_direction();
-
-        switch (dir) {
-            case DIR_UP:
-                printf("UP (Red)\n");
-                break;
-            case DIR_DOWN:
-                printf("DOWN (Blue)\n");
-                break;
-            case DIR_LEFT:
-                printf("LEFT (Yellow)\n");
-                break;
-            case DIR_RIGHT:
-                printf("RIGHT (Green)\n");
-                break;
-            default:
-                break;
+        srand((unsigned)time_us_64());
+        int r;
+        for (int i = 0; i < difficulty; ++i) {
+            r = rand() % 4;
+            gpio_put(21 + r, true);
+            sleep_ms(milis);
+            gpio_put(21 + r, false);
+            sleep_ms(400);
+            enqueue(&q, 21 + r);
         }
+        int i = 0;
+        while (i < difficulty) {
+            direction_t dir = get_joystick_direction();
 
-        sleep_ms(200); // Debounce / slow down prints
+            switch (dir) {
+                case DIR_UP:
+                    printf("UP (Red)\n");
+                    i++;
+                    if (dequeue(&q) != 21) fail = true;
+                    break;
+                case DIR_DOWN:
+                    printf("DOWN (Blue)\n");
+                    i++;
+                    if (dequeue(&q) != 23) fail = true;
+                    break;
+                case DIR_LEFT:
+                    printf("LEFT (Yellow)\n");
+                    i++;
+                    if (dequeue(&q) != 24) fail = true;
+                    break;
+                case DIR_RIGHT:
+                    printf("RIGHT (Green)\n");
+                    if (dequeue(&q) != 22) fail = true;
+                    i++;
+                    break;
+                default:
+                    break;
+            }
+
+            sleep_ms(200); // Debounce / slow down prints
+        }
+        difficulty++;
+        sleep_ms(1000);
+        if (fail == true) break;
     }
+    printf("DONE\n");
 
     eeprom_read(0x20, &high_score, 1);
     if (round_score > high_score) {
