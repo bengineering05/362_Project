@@ -95,7 +95,15 @@ void eeprom_read(uint16_t loc, void *data, size_t len) {
     i2c_read_blocking(i2c1, 0x50, (uint8_t*)data, len, false);
 }
 
+void init_outputs() {
+    gpio_init(29);
+    gpio_init(30);
+    gpio_init(31);
 
+    gpio_set_dir(29, true);
+    gpio_set_dir(30, true);
+    gpio_set_dir(31, true);
+}
 
 void init_chardisp_pins() {
     gpio_set_function(SPI_DISP_SCK, GPIO_FUNC_SPI);
@@ -159,6 +167,21 @@ int main() {
     cd_init();
     
     //eeprom_write(0x20, &clear_val, 1);
+
+    init_outputs();
+    
+    int difficulty = 5;
+    int milis = 2000;
+
+    srand((unsigned)time_us_64());
+    int r;
+    for (int i = 0; i < difficulty; ++i) {
+        r = rand() % 3;
+        gpio_put(29 + r, true);
+        sleep_ms(milis);
+        gpio_put(29 + r, false);
+        sleep_ms(400);
+    }
 
     while (true) {
         direction_t dir = get_joystick_direction();
