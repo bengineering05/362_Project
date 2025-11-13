@@ -184,7 +184,7 @@ int main() {
     int milis = 1000;
     bool fail = false;
     sleep_ms(2000);
-    while (true) {
+    while (!fail) {
         srand((unsigned)time_us_64());
         int r;
         for (int i = 0; i < difficulty; ++i) {
@@ -225,11 +225,12 @@ int main() {
             }
 
             sleep_ms(200); // Debounce / slow down prints
+            if (fail) break;
         }
         round_score = difficulty - 1;
         difficulty++;
         sleep_ms(1000);
-        if (fail == true) break;
+
     }
     printf("DONE\n");
 
