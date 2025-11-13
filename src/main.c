@@ -1,4 +1,5 @@
 #include "pico/stdlib.h"
+#include "stdlib.h"
 #include "hardware/i2c.h"
 #include "hardware/adc.h"
 #include "string.h"
@@ -6,6 +7,11 @@
 #include "string.h"
 #include "stdio.h"
 #include "math.h"
+#include "time.h"
+#include "hardware/structs/iobank0.h"
+#include "hardware/structs/pads_bank0.h"
+#include "hardware/structs/sio.h"
+
 
 //adc stuff for joystick
 #define CENTER_TOLERANCE 1000  // range around midpoint considered neutral
@@ -96,13 +102,15 @@ void eeprom_read(uint16_t loc, void *data, size_t len) {
 }
 
 void init_outputs() {
-    gpio_init(29);
-    gpio_init(30);
-    gpio_init(31);
+    gpio_init(21);
+    gpio_init(22);
+    gpio_init(23);
+    gpio_init(24);
 
-    gpio_set_dir(29, true);
-    gpio_set_dir(30, true);
-    gpio_set_dir(31, true);
+    gpio_set_dir(21, true);
+    gpio_set_dir(22, true);
+    gpio_set_dir(23, true);
+    gpio_set_dir(24, true);
 }
 
 void init_chardisp_pins() {
@@ -173,15 +181,15 @@ int main() {
     int difficulty = 5;
     int milis = 2000;
 
-    // srand((unsigned)time_us_64());
-    // int r;
-    // for (int i = 0; i < difficulty; ++i) {
-    //     r = rand() % 3;
-    //     gpio_put(29 + r, true);
-    //     sleep_ms(milis);
-    //     gpio_put(29 + r, false);
-    //     sleep_ms(400);
-    // }
+    srand((unsigned)time_us_64());
+    int r;
+    for (int i = 0; i < difficulty; ++i) {
+        r = rand() % 4;
+        gpio_put(21 + r, true);
+        sleep_ms(milis);
+        gpio_put(21 + r, false);
+        sleep_ms(400);
+    }
 
     while (true) {
         direction_t dir = get_joystick_direction();
