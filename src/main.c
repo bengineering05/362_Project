@@ -40,7 +40,7 @@ const int SPI_DISP_TX = 31;
 
 uint8_t clear_val = 0;
 uint8_t high_score;
-uint8_t round_score = 8;
+uint8_t round_score = 0;
 
 void adc_init_joystick() {
     adc_init();
@@ -175,7 +175,6 @@ int main() {
     init_chardisp_pins();
     cd_init();
     
-    //eeprom_write(0x20, &clear_val, 1);
 
     init_outputs();
     Queue q;
@@ -184,6 +183,7 @@ int main() {
     int difficulty = 1;
     int milis = 1000;
     bool fail = false;
+    sleep_ms(2000);
     while (true) {
         srand((unsigned)time_us_64());
         int r;
@@ -201,12 +201,12 @@ int main() {
 
             switch (dir) {
                 case DIR_UP:
-                    printf("UP (Red)\n");
+                    printf("UP (Green)\n");
                     i++;
                     if (dequeue(&q) != 21) fail = true;
                     break;
                 case DIR_DOWN:
-                    printf("DOWN (Blue)\n");
+                    printf("DOWN (White)\n");
                     i++;
                     if (dequeue(&q) != 23) fail = true;
                     break;
@@ -216,7 +216,7 @@ int main() {
                     if (dequeue(&q) != 24) fail = true;
                     break;
                 case DIR_RIGHT:
-                    printf("RIGHT (Green)\n");
+                    printf("RIGHT (Red)\n");
                     if (dequeue(&q) != 22) fail = true;
                     i++;
                     break;
@@ -226,18 +226,23 @@ int main() {
 
             sleep_ms(200); // Debounce / slow down prints
         }
+        round_score = difficulty - 1;
         difficulty++;
         sleep_ms(1000);
         if (fail == true) break;
     }
     printf("DONE\n");
 
+   // eeprom_write(0x20, &clear_val, 1);
     eeprom_read(0x20, &high_score, 1);
     if (round_score > high_score) {
         eeprom_write(0x20, &round_score, 1);
         eeprom_read(0x20, &high_score, 1);
     }
-    printf("High Score: %u\n", high_score);
+ //   printf("High Score: %u\n", high_score);
+    cd_display1("Round Score:    ");
+    cd_display_number(round_score);
+    sleep_ms(2000);
     cd_display1("High Score:     ");
     cd_display_number(high_score);
     
