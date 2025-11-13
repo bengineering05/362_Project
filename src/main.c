@@ -2,7 +2,6 @@
 #include "hardware/i2c.h"
 #include "hardware/adc.h"
 #include "string.h"
-#include <stdio.h>
 #include "hardware/spi.h"
 #include "string.h"
 #include "stdio.h"
