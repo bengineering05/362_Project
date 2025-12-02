@@ -11,6 +11,7 @@
 #include "hardware/structs/iobank0.h"
 #include "hardware/structs/pads_bank0.h"
 #include "hardware/structs/sio.h"
+#include "hardware/pwm.h"
 #include "queue.h"
 
 
@@ -18,6 +19,8 @@
 #define CENTER_TOLERANCE 1000  // range around midpoint considered neutral
 #define ADC_MIDPOINT 2048 // ~1.65V for 12-bit ADC (0–4095)
 #define ADC_MAX 4095 //max value for 12 bit adc
+
+#define SPEAKER_PIN 20
 
 #define JOY_X 7  // gp26 connect to vrX
 #define JOY_Y 6  // gp27 connect to vrY
@@ -168,6 +171,35 @@ void cd_display_number(uint8_t value) {
     }
 }
 
+void init_buzzer_pwm() {
+    gpio_set_function(SPEAKER_PIN, GPIO_FUNC_PWM);
+
+    uint buzzer_slice = pwm_gpio_to_slice_num(SPEAKER_PIN);
+    uint buzzer_channel = pwm_gpio_to_channel(SPEAKER_PIN);
+
+    pwm_config cfg = pwm_get_default_config();
+    
+    float clkdiv = 64.0f;
+    uint16_t buzzer_top = 976;
+
+    pwm_config_set_clkdiv(&cfg, clkdiv);
+    pwm_config_set_wrap(&cfg, buzzer_top);
+
+    pwm_init(buzzer_slice, &cfg, false);
+}
+
+void beep(uint16_t top_value) {
+    uint slice = pwm_gpio_to_slice_num(SPEAKER_PIN);
+    uint channel = pwm_gpio_to_channel(SPEAKER_PIN);
+
+    pwm_set_wrap(slice, top_value);
+
+    pwm_set_chan_level(slice, channel, top / 2);  // 50% duty cycle
+    pwm_set_enabled(slice, true);
+    sleep_ms(150); // beep length
+    pwm_set_enabled(slice, false);
+}
+
 int main() {
     stdio_init_all();
     adc_init_joystick();
@@ -225,10 +257,17 @@ int main() {
             }
 
             sleep_ms(200); // Debounce / slow down prints
-            if (fail) break;
+            if (fail) {
+                // TOP = (125000000 / (64 * 1000)) - 1 = 1953
+                beep(1953);
+                break;
+            }
         }
         round_score = difficulty - 1;
         difficulty++;
+        // TOP = (125000000 / (64 * 2000)) - 1 = 976
+        beep(976);
+
         sleep_ms(1000);
 
     }
