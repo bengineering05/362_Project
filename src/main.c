@@ -194,7 +194,7 @@ void beep(uint16_t top_value) {
 
     pwm_set_wrap(slice, top_value);
 
-    pwm_set_chan_level(slice, channel, top / 2);  // 50% duty cycle
+    pwm_set_chan_level(slice, channel, top_value / 2);  // 50% duty cycle
     pwm_set_enabled(slice, true);
     sleep_ms(150); // beep length
     pwm_set_enabled(slice, false);
@@ -206,6 +206,7 @@ int main() {
     init_i2c();
     init_chardisp_pins();
     cd_init();
+    init_buzzer_pwm();
     
 
     init_outputs();
